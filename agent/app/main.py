@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from agent.app.api.health import router as health_router
 from agent.app.api.files import router as files_router
+from agent.app.api.stats import router as stats_router
 from agent.app.core.config import AgentConfig
 from agent.app.platforms import get_platform
 
@@ -14,6 +15,7 @@ def create_app(config: AgentConfig | None = None) -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(files_router)
+    app.include_router(stats_router)
 
     return app
 
