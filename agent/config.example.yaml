@@ -1,0 +1,21 @@
+# agent/config.example.yaml
+# Server Agent Configuration
+
+bind_host: "0.0.0.0"
+bind_port: 8420
+
+# Master URL (leave empty for standalone Windows mode)
+master_url: ""
+
+# Restrict file browsing to these directories (empty = allow all)
+allowed_paths: []
+  # - /var/log
+  # - /home/deploy
+
+# Terminal settings
+max_terminal_sessions: 5
+terminal_idle_timeout: 1800  # seconds (30 min)
+
+# Certificate directory
+# cert_dir: /etc/server-agent/certs  (Linux default)
+# cert_dir: C:\ProgramData\server-agent\certs  (Windows default)
