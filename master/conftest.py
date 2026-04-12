@@ -1,0 +1,5 @@
+import sys
+import os
+
+# Add the project root (Server-WEbUI) to sys.path so 'master' package is importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
