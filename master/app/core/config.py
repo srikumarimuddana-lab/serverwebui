@@ -1,10 +1,17 @@
 import os
+import secrets
 
 
 class MasterConfig:
     def __init__(self):
         self.database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./server_webui.db")
-        self.jwt_secret: str = os.getenv("JWT_SECRET", "CHANGE-ME-IN-PRODUCTION")
+        jwt_secret = os.getenv("JWT_SECRET")
+        if not jwt_secret:
+            raise RuntimeError(
+                "JWT_SECRET environment variable is required. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+            )
+        self.jwt_secret: str = jwt_secret
         self.jwt_algorithm: str = "HS256"
         self.access_token_expire_minutes: int = 15
         self.refresh_token_expire_days: int = 7

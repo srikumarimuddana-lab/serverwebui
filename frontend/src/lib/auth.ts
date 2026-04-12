@@ -16,6 +16,46 @@ export function clearTokens() {
   localStorage.removeItem(REFRESH_KEY);
 }
 
+function parseJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+}
+
 export function isAuthenticated(): boolean {
-  return !!getToken();
+  const token = getToken();
+  if (!token) return false;
+
+  const payload = parseJwtPayload(token);
+  if (!payload) {
+    clearTokens();
+    return false;
+  }
+
+  // Check token expiry
+  const exp = payload.exp as number | undefined;
+  if (exp && exp * 1000 < Date.now()) {
+    clearTokens();
+    return false;
+  }
+
+  // Verify token has required fields
+  if (!payload.sub || !payload.role || payload.type !== "access") {
+    clearTokens();
+    return false;
+  }
+
+  return true;
+}
+
+export function getCurrentUserRole(): string | null {
+  const token = getToken();
+  if (!token) return null;
+  const payload = parseJwtPayload(token);
+  return (payload?.role as string) ?? null;
 }

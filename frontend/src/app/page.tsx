@@ -13,7 +13,8 @@ export default function Home() {
     } else {
       router.push("/dashboard");
     }
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }

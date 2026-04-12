@@ -14,7 +14,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isAuthenticated()) { router.push("/login"); return; }
     setServers(getServers());
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">

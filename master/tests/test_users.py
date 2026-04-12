@@ -55,7 +55,7 @@ async def test_list_users(client, admin_token):
 async def test_create_user(client, admin_token):
     response = await client.post(
         "/users",
-        json={"username": "newuser", "password": "pass123", "role": "viewer"},
+        json={"username": "newuser", "password": "pass1234", "role": "viewer"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 201
@@ -69,7 +69,7 @@ async def test_update_user_role(client, admin_token):
     # Create a user first
     create_resp = await client.post(
         "/users",
-        json={"username": "roleuser", "password": "pass123", "role": "viewer"},
+        json={"username": "roleuser", "password": "pass1234", "role": "viewer"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert create_resp.status_code == 201

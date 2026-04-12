@@ -1,6 +1,11 @@
+import os
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+# Set test JWT secret before any imports that trigger MasterConfig
+os.environ.setdefault("JWT_SECRET", "test-secret-for-unit-tests-only")
+
 from master.app.core.database import Base
 
 

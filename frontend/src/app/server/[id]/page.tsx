@@ -35,7 +35,8 @@ export default function ServerPage() {
     const servers = getServers();
     const found = servers.find((s) => s.id === Number(params.id));
     if (found) setServer(found);
-  }, [params.id, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
 
   if (!server) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-400">Loading...</div>;
 

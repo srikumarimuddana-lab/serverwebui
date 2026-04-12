@@ -10,6 +10,7 @@ from master.app.api.agents import router as agents_router
 from master.app.api.audit import router as audit_router
 from master.app.api.proxy import router as proxy_router
 from master.app.services.agent_proxy import AgentProxy
+from master.app.core.rate_limit import RateLimitMiddleware
 
 
 @asynccontextmanager
@@ -29,6 +30,7 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
     app.state.config = config
     app.state.agent_proxy = AgentProxy(config)
 
+    app.add_middleware(RateLimitMiddleware, default_rpm=120, login_rpm=5, login_lockout_seconds=900)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
@@ -46,4 +48,10 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
     return app
 
 
-app = create_app()
+def _get_app():
+    import os
+    if os.getenv("JWT_SECRET"):
+        return create_app()
+    return None
+
+app = _get_app()

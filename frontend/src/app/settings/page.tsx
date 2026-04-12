@@ -14,7 +14,8 @@ export default function SettingsPage() {
     if (!isAuthenticated()) { router.push("/login"); return; }
     const raw = localStorage.getItem("servers_config");
     if (raw) setServers(JSON.parse(raw));
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function save(updated: Server[]) {
     setServers(updated);

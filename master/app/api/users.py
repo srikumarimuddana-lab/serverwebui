@@ -1,5 +1,6 @@
+from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from master.app.core.database import get_session
@@ -9,12 +10,12 @@ from master.app.models.user import User
 router = APIRouter()
 
 class CreateUserRequest(BaseModel):
-    username: str
-    password: str
-    role: str = "viewer"
+    username: str = Field(..., min_length=1, max_length=100, pattern=r'^[a-zA-Z0-9_.-]+$')
+    password: str = Field(..., min_length=8, max_length=128)
+    role: Literal["admin", "operator", "viewer"] = "viewer"
 
 class UpdateRoleRequest(BaseModel):
-    role: str
+    role: Literal["admin", "operator", "viewer"]
 
 @router.get("/users")
 async def list_users(
@@ -31,8 +32,6 @@ async def create_user(
     user=Depends(require_role("admin")),
     session: AsyncSession = Depends(get_session),
 ):
-    if body.role not in ("admin", "operator", "viewer"):
-        raise HTTPException(status_code=400, detail="Invalid role")
     existing = await session.execute(select(User).where(User.username == body.username))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Username already exists")
@@ -49,8 +48,6 @@ async def update_role(
     user=Depends(require_role("admin")),
     session: AsyncSession = Depends(get_session),
 ):
-    if body.role not in ("admin", "operator", "viewer"):
-        raise HTTPException(status_code=400, detail="Invalid role")
     result = await session.execute(select(User).where(User.id == user_id))
     target = result.scalar_one_or_none()
     if not target:
