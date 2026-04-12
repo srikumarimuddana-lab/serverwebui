@@ -5,6 +5,7 @@ from master.app.core.config import MasterConfig
 from master.app.core.database import init_db, create_tables
 from master.app.core.auth import init_auth
 from master.app.api.auth import router as auth_router
+from master.app.api.users import router as users_router
 
 
 @asynccontextmanager
@@ -32,6 +33,7 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
     )
 
     app.include_router(auth_router)
+    app.include_router(users_router)
 
     return app
 
