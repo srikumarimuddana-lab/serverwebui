@@ -6,6 +6,8 @@ from master.app.core.database import init_db, create_tables
 from master.app.core.auth import init_auth
 from master.app.api.auth import router as auth_router
 from master.app.api.users import router as users_router
+from master.app.api.agents import router as agents_router
+from master.app.services.agent_proxy import AgentProxy
 
 
 @asynccontextmanager
@@ -23,6 +25,7 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
 
     app = FastAPI(title="Server WebUI Master", version="0.1.0", lifespan=lifespan)
     app.state.config = config
+    app.state.agent_proxy = AgentProxy(config)
 
     app.add_middleware(
         CORSMiddleware,
@@ -34,6 +37,7 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(users_router)
+    app.include_router(agents_router)
 
     return app
 
