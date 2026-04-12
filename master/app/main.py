@@ -7,6 +7,8 @@ from master.app.core.auth import init_auth
 from master.app.api.auth import router as auth_router
 from master.app.api.users import router as users_router
 from master.app.api.agents import router as agents_router
+from master.app.api.audit import router as audit_router
+from master.app.api.proxy import router as proxy_router
 from master.app.services.agent_proxy import AgentProxy
 
 
@@ -38,6 +40,8 @@ def create_app(config: MasterConfig | None = None) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(agents_router)
+    app.include_router(audit_router)
+    app.include_router(proxy_router)
 
     return app
 
