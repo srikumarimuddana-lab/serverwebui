@@ -55,15 +55,22 @@ async def test_login_wrong_password(client):
 @pytest.mark.asyncio
 async def test_refresh_token(client):
     login = await client.post("/auth/login", json={"username": "admin", "password": "admin123"})
-    token = login.json()["access_token"]
-    response = await client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
+    refresh_token = login.json()["refresh_token"]
+    response = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
     assert response.status_code == 200
     assert "access_token" in response.json()
 
 
 @pytest.mark.asyncio
+async def test_refresh_rejects_access_token(client):
+    login = await client.post("/auth/login", json={"username": "admin", "password": "admin123"})
+    access_token = login.json()["access_token"]
+    response = await client.post("/auth/refresh", json={"refresh_token": access_token})
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_protected_route_without_token(client):
-    # /auth/refresh requires a valid Bearer token; without one FastAPI returns 403
-    # (HTTPBearer returns 403 when no Authorization header is present)
+    # Missing body -> pydantic validation error (422)
     response = await client.post("/auth/refresh")
-    assert response.status_code in (401, 403)
+    assert response.status_code in (401, 403, 422)

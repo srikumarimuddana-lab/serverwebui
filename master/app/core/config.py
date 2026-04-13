@@ -20,3 +20,9 @@ class MasterConfig:
         self.bind_port: int = int(os.getenv("BIND_PORT", "8400"))
         self.cert_dir: str = os.getenv("CERT_DIR", "/etc/server-webui/certs")
         self.agent_health_interval: int = 60
+
+        # Default admin bootstrap credentials. Used on first startup (when no
+        # users exist) to seed an initial admin account so the UI is usable.
+        # Change the password immediately after first login.
+        self.default_admin_username: str = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
+        self.default_admin_password: str | None = os.getenv("DEFAULT_ADMIN_PASSWORD")

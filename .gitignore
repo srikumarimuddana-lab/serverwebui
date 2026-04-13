@@ -28,3 +28,8 @@ Thumbs.db
 
 # Claude
 .claude/
+
+# Environment
+.env
+.env.local
+!.env.example
