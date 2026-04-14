@@ -1,21 +1,55 @@
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 from master.app.core.config import MasterConfig
-from master.app.core.database import init_db, create_tables
-from master.app.core.auth import init_auth
+from master.app.core.database import init_db, create_tables, async_session
+from master.app.core.auth import init_auth, hash_password
 from master.app.api.auth import router as auth_router
 from master.app.api.users import router as users_router
 from master.app.api.agents import router as agents_router
 from master.app.api.audit import router as audit_router
 from master.app.api.proxy import router as proxy_router
+from master.app.models.user import User
 from master.app.services.agent_proxy import AgentProxy
 from master.app.core.rate_limit import RateLimitMiddleware
+
+logger = logging.getLogger(__name__)
+
+
+async def _bootstrap_default_admin(config: MasterConfig) -> None:
+    """Create the default admin user on first startup if no users exist."""
+    if async_session is None:
+        return
+    async with async_session() as session:
+        result = await session.execute(select(User).limit(1))
+        if result.scalar_one_or_none() is not None:
+            return
+        if not config.default_admin_password:
+            logger.warning(
+                "No users exist and DEFAULT_ADMIN_PASSWORD is not set. "
+                "Set DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD env vars "
+                "to bootstrap an initial admin account."
+            )
+            return
+        admin = User(
+            username=config.default_admin_username,
+            password_hash=hash_password(config.default_admin_password),
+            role="admin",
+        )
+        session.add(admin)
+        await session.commit()
+        logger.info(
+            "Created default admin user '%s'. Change the password after first login.",
+            config.default_admin_username,
+        )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_tables()
+    await _bootstrap_default_admin(app.state.config)
     yield
 
 

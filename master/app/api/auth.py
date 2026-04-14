@@ -1,17 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from master.app.core.database import get_session
 from master.app.core.auth import (
     verify_password, create_access_token, create_refresh_token,
-    decode_token, get_current_user,
+    decode_token,
 )
 from master.app.models.user import User
 
 router = APIRouter(prefix="/auth")
 
-from pydantic import Field
 
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100, pattern=r'^[a-zA-Z0-9_.-]+$')
@@ -21,6 +20,9 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest, session: AsyncSession = Depends(get_session)):
@@ -34,7 +36,15 @@ async def login(body: LoginRequest, session: AsyncSession = Depends(get_session)
     )
 
 @router.post("/refresh")
-async def refresh(user: User = Depends(get_current_user)):
+async def refresh(body: RefreshRequest, session: AsyncSession = Depends(get_session)):
+    payload = decode_token(body.refresh_token)
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+    user_id = int(payload["sub"])
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
     return {
         "access_token": create_access_token(user.id, user.username, user.role),
         "token_type": "bearer",
